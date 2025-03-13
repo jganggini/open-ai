@@ -1,0 +1,773 @@
+{
+  "name": "DocVLM Ollama",
+  "nodes": [
+    {
+      "parameters": {
+        "outputPrefix": "data"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        -180,
+        0
+      ],
+      "id": "a4abbc11-8025-4330-a79d-cd6d0fedac41",
+      "name": "Compression"
+    },
+    {
+      "parameters": {
+        "jsCode": "let results = [];\n\nfor (item of items) {\n    for (key of Object.keys(item.binary)) {\n        results.push({\n            json: {\n                fileName: item.binary[key].fileName\n            },\n            binary: {\n                data: item.binary[key],\n            }\n        });\n    }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        40,
+        0
+      ],
+      "id": "4f6f81e7-67bf-41ae-b1ed-15fc1feed54a",
+      "name": "Images To List"
+    },
+    {
+      "parameters": {
+        "sortFieldsUi": {
+          "sortField": [
+            {
+              "fieldName": "fileName"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        260,
+        0
+      ],
+      "id": "cbff43ff-005e-4bb2-8ba7-a1d2f2e5dce1",
+      "name": "Sort Pages"
+    },
+    {
+      "parameters": {
+        "operation": "resize",
+        "width": 75,
+        "height": 75,
+        "resizeOption": "percent",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.editImage",
+      "typeVersion": 1,
+      "position": [
+        500,
+        0
+      ],
+      "id": "dfd89ef3-f645-4e69-8ca7-6fe53b61fa48",
+      "name": "Resize Images For AI"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=transcribe the image to markdown.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You help transcribe documents to markdown, keeping faithful to all text printed and visible to the best of your ability. Ensure you capture all headings, subheadings, titles as well as small print.\nFor any tables found with the document, convert them to markdown tables. If table row descriptions overflow into more than 1 row, concatanate and fit them into a single row. If two or more tables are adjacent horizontally, stack the tables vertically instead. There should be a newline after every markdown table.\nFor any graphics, use replace with a description of the image. Images of scanned checks should be converted to the phrase \"<scanned image of check>\"."
+            },
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "=data",
+              "imageDetail": "high"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        0
+      ],
+      "id": "f534fc18-4d6c-473a-b526-febf4c15d34b",
+      "name": "Transcribe to Markdown"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "text",
+              "renameField": true,
+              "outputFieldName": "pages"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "976eba0f-aad0-4dad-b28b-8cd80f70c389",
+      "name": "Aggregate All Pages"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/api/v1/convert/pdf/img",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "multipart/form-data"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "imageFormat",
+              "value": "=png"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "fileInput",
+              "inputDataFieldName": "=data0"
+            },
+            {
+              "name": "singleOrMultiple",
+              "value": "muliple"
+            },
+            {
+              "name": "colorType",
+              "value": "color"
+            },
+            {
+              "name": "dpi",
+              "value": "300"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "c0e260f4-001c-44d8-ae76-e2fb58e2f70b",
+      "name": "Stirling PDF API"
+    },
+    {
+      "parameters": {
+        "content": "## Split PDF Pages into Seperate Images\n[📖 Locally hosted web-based PDF manipulation tool using Docker](https://github.com/Stirling-Tools/Stirling-PDF)\n\nSince the vision model can't process PDFs directly, we'll convert them into images using the free [Stirling PDF webservice](https://stirlingpdf.io/). For better privacy, we recommend **self-hosting** a [Stirling PDF instance](https://github.com/Stirling-Tools/Stirling-PDF/) or using any alternative service that supports PDF-to-image conversion.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n### 🛠️ Workflow Steps  \n1️⃣ **Convert PDF to Images** → Converts each PDF page into an image, compresses, extracts, and orders.\n2️⃣ **Extract Images from ZIP** → The Compression step decompresses and extracts images for processing.\n3️⃣ **Organize and Prepare Images** → Images To List structures and Sort Pages arranges images in order.",
+        "height": 500,
+        "width": 800,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -420,
+        -180
+      ],
+      "typeVersion": 1,
+      "id": "546d7632-166d-404c-8f21-a540880025dc",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Convert PDF Pages to Markdown Using a Vision Model (DocVLM) \n[📖 Vision Language Models for Document Understanding](https://arxiv.org/abs/2412.08746)\n\nUnlike traditional OCR, **Document Vision Language Models (DocVLMs)** not only transcribe text but also **understand document structure**. This enables better handling of **tables, columns, and complex layouts** for more accurate text extraction.  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n### 🛠️ Workflow Steps  \n1️⃣ **Preprocess PDFs** → **Resize Images for AI** optimizes pages for better text recognition.  \n2️⃣ **Transcription with DocVLM** → **Ollama Model** extracts structured text, preserving layout semantics.  \n3️⃣ **Page Aggregation** → The **Aggregate All Pages** step consolidates Markdown output for analysis.",
+        "height": 656,
+        "width": 835,
+        "color": 5
+      },
+      "id": "57c4cfee-75f9-49e5-bad2-5907080d9cba",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        440,
+        -180
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Vector Store\n[📖 How to Get Started with Qdrant Locally](https://qdrant.tech/documentation/quickstart)\n\nThis workflow processes and stores text embeddings in a **Qdrant Vector Store**, enabling efficient retrieval and semantic search. It follows a structured pipeline to **split, embed, and store** documents as vector representations.  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n### 🛠️ Workflow Steps  \n1️⃣ **Load Document** → The **Default Data Loader** imports the document.  \n2️⃣ **Split Text** → The text is divided into smaller chunks.  \n3️⃣ **Generate Embeddings** → **Embeddings 1** converts chunks into vectors.  \n4️⃣ **Store in Qdrant** → Embeddings are indexed for fast retrieval.",
+        "height": 876,
+        "width": 515,
+        "color": 5
+      },
+      "id": "178dfdc5-5dd2-46ff-83a2-c7fa6cda9610",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1340,
+        -180
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        220
+      ],
+      "id": "bcac5456-0479-48bc-acba-5bc6b9ae6c85",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 1024,
+        "chunkOverlap": 128,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1640,
+        400
+      ],
+      "id": "0a61df92-9a5b-42b7-b528-04a336cb8688",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "={{ $('Chat').item.json.chatInput }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2280,
+        0
+      ],
+      "id": "e46b7ef9-2911-4114-bfb7-5261af75d8b7",
+      "name": "AI Agent",
+      "executeOnce": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "name": "get_question",
+        "description": "The knowledge base to answer user question",
+        "topK": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        220
+      ],
+      "id": "25ea17d8-a136-4c78-a4b3-bc8a3b89c0e1",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent\n[📖 Conversational AI Agent node](https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.agent/conversational-agent/)\n\nThe **AI Agent** acts as a **conversational assistant**, integrating multiple components to **enhance interactions** with users. It leverages **chat models, memory storage, and vector-based retrieval** to provide more accurate and context-aware responses.  \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n### 🛠️ Workflow Steps  \n1️⃣ **Chat Models** → Generates responses with **Ollama Model 2** and **Chat Model 2**.  \n2️⃣ **Memory** → Stores chat history in **Postgres Chat Memory**.  \n3️⃣ **Vector Search** → Retrieves data from **Qdrant Vector Store 2**.  \n4️⃣ **Tools** → Enhances answers using a vector store.  ",
+        "height": 1076,
+        "width": 615,
+        "color": 5
+      },
+      "id": "1216f93f-caf9-4720-9e7d-f95581c64466",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2140,
+        -180
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Chat').item.json.sessionId }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2320,
+        220
+      ],
+      "id": "04606527-ac98-469d-9be8-4ae25b2dce02",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "DQWWL6VWJIrXHQhM",
+          "name": "Local Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek-r1:7b",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2620,
+        420
+      ],
+      "id": "59adf06b-8666-4297-ac2c-36de6fcfc6a1",
+      "name": "Chat Model 2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "={{ $('Chat').item.json.sessionId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1,
+      "position": [
+        1460,
+        0
+      ],
+      "id": "1847e2cf-8db0-4455-92cd-6e987d14137b",
+      "name": "Qdrant Vector Store 1",
+      "credentials": {
+        "qdrantApi": {
+          "id": "sFfERYppMeBnFNeA",
+          "name": "Local QdrantApi database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "={{ $('Chat').item.json.sessionId }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1,
+      "position": [
+        2300,
+        420
+      ],
+      "id": "9914fef1-cc52-43fc-8990-ec8c6ceb5b20",
+      "name": "Qdrant Vector Store 2",
+      "credentials": {
+        "qdrantApi": {
+          "id": "sFfERYppMeBnFNeA",
+          "name": "Local QdrantApi database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        220
+      ],
+      "id": "1a820a17-c1fb-4dd1-978e-9469a8759ace",
+      "name": "Embeddings 1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        2380,
+        620
+      ],
+      "id": "ae9229a7-62be-479d-86cd-c542b5f7ff5e",
+      "name": "Embeddings 2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "authentication": "basicAuth",
+        "initialMessages": "My name is Joe. How can I assist you today?",
+        "options": {
+          "allowFileUploads": true,
+          "allowedFilesMimeTypes": ".pdf",
+          "subtitle": "🐳 DeepSeek R-1:7b · ✨ Nomic-Embed-Text · 🦙 Llama3.2-Vision:11b · 🧫 Qdrant · ⚡ PostgreSQL",
+          "title": "AI CloudTech! 🤖"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1560,
+        740
+      ],
+      "id": "6ae52bbe-c306-4663-b6dd-354abbfce375",
+      "name": "Chat",
+      "webhookId": "27f0cdda-9db7-41c9-a9ae-f696e6d197c8",
+      "notesInFlow": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "JK8C6W48cjoDvtX8",
+          "name": "[user] demo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d99b91cb-ad9b-4978-833a-6b54c384fd36",
+              "leftValue": "={{ $json.files[0] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        740
+      ],
+      "id": "b00f75c0-eb21-4099-bb47-9a882f6b4ca8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "llama3.2-vision:11b",
+          "mode": "list",
+          "cachedResultName": "llama3.2-vision:11b"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        220
+      ],
+      "id": "3396cfca-4dc3-4197-a1b8-d9fd246d5354",
+      "name": "Ollama Model 1",
+      "credentials": {
+        "openAiApi": {
+          "id": "0Rv9XLxj7Iek95rl",
+          "name": "Ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "deepseek-r1:7b",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        2180,
+        220
+      ],
+      "id": "ab096a07-b44e-4718-a8ca-0d8c742f39e7",
+      "name": "Ollama Model 2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "xHuYe0MDGOs9IpBW",
+          "name": "Local Ollama service"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Compression": {
+      "main": [
+        [
+          {
+            "node": "Images To List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Images To List": {
+      "main": [
+        [
+          {
+            "node": "Sort Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort Pages": {
+      "main": [
+        [
+          {
+            "node": "Resize Images For AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resize Images For AI": {
+      "main": [
+        [
+          {
+            "node": "Transcribe to Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe to Markdown": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stirling PDF API": {
+      "main": [
+        [
+          {
+            "node": "Compression",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Pages": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store 1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store 1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store 2": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings 1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store 1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings 2": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store 2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Stirling PDF API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model 1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Transcribe to Markdown",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model 2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "aa6e5f6c-6c38-4abd-96fb-57bf7291652c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "558d88703fb65b2d0e44613bc35916258b0f0bf983c5d4730c00c424b77ca36a"
+  },
+  "id": "D9O9OtqmZoc2QNnv",
+  "tags": []
+}
