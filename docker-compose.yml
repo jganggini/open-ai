@@ -157,6 +157,8 @@ services:
     depends_on:
       open-webui-import:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
 
   ollama-gpu:
     profiles: ["gpu-nvidia"]
