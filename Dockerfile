@@ -9,9 +9,8 @@ RUN apt-get update \
 # Crear directorio SSL
 RUN mkdir -p /etc/nginx/ssl
 
-# Copiar configuración y contenido web
+# Copiar configuración
 COPY default.conf /etc/nginx/sites-available/default
-COPY index.html /var/www/html/index.html
 
 # Generar certificado autofirmado (válido 365 días)
 RUN openssl req -x509 -nodes -days 365 \
