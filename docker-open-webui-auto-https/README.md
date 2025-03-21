@@ -1,10 +1,13 @@
-# open-ai
+## 💼 𝗨𝘀𝗲 𝗖𝗮𝘀𝗲
+Este caso de uso se centra en ofrecer soluciones de inteligencia artificial open source de fácil despliegue y uso, permitiendo a empresas y desarrolladores acceder rápidamente a tecnología de vanguardia. Se aborda implementando Open WebUI para gestionar modelos de IA, junto con Ollama para ejecutar modelos de lenguaje (LLM) en entornos CPU o GPU, y Nginx para asegurar el tráfico HTTPS. Todo se orquesta con Docker Compose, lo que permite configurar perfiles específicos y una integración ágil en entornos locales o en la nube.
 
-Repositorio con diversos proyectos y ejemplos relacionados con **Open-Source AI Stack**.
+## 𝗖𝗼𝗺𝗽𝗼𝗻𝗲𝗻𝘁𝘀
+* 🔗 Open WebUI – Interfaz intuitiva para gestionar modelos de IA
+* 🦙 Ollama – Modelo de Lenguaje (LLM) adaptable a CPU o GPU
+* 🔒 Nginx – Proxy inverso y gestor de HTTPS
+* 🐳 Docker Compose – Orquestación y despliegue ágil de contenedores
 
-
-## 📌 Uso
-Cada directorio contiene documentación y código relevante para distintos casos de uso en **Open-Source AI Stack**.
+## Installation
 
 ### 1. Set up Docker's apt repository.
 
@@ -54,16 +57,16 @@ sudo git version
 
 Ref: https://github.com/git-guides/install-git
 
-### 6. ....:
+### 6. Cloning the Repository:
 
 ```bash
 sudo mkdir docker
 cd docker
 sudo git clone https://github.com/jganggini/open-ai.git
-cd docker-open-webui-auto-https
+cd open-ai/docker-open-webui-auto-https
 ```
 
-### 7. ....:
+### 7. Running Open WebUI using Docker Compose:
 
 For Nvidia GPU setups:
 
@@ -80,9 +83,5 @@ sudo docker compose --profile cpu pull
 sudo docker compose create
 sudo docker compose --profile cpu up
 ```
-
-### 8. ....:
-
-
 
 Ref: https://github.com/n8n-io/self-hosted-ai-starter-kit
