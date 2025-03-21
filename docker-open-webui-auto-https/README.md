@@ -1,3 +1,49 @@
+[![Issues][issues-shield]][issues-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
+
+<!-- Intro -->
+<br />
+<div align="center" style="text-align:center;">
+  <img align="center" src="img/oi.png"height="100"></img>
+  <h1>Open WebUI</h1>
+
+  <a style="font-size:large;" href="/src/">👨🏽‍💻 Explore the Code »</a>
+  <br/>
+  <a href="https://www.youtube.com/watch?v=6L1YmTRZNxM&list=PLMUWTQHw13gbk738EGtr0fWwi40B81qEw">🎬 View Demo</a>
+  ·
+  <a href="https://github.com/jganggini/oci-functions/issues">💣 Report Bug</a>
+  ·
+  <a href="https://github.com/jganggini/oci-functions/pulls">🚀 Request Feature</a>
+
+  <div align="center" style="text-align:center;">
+    <table align="center">
+      <tr style="font-size:medium;">
+        <td colspan="5">AI Stack</td>
+        <td colspan="2">LLM</td>
+      </tr>
+      <tr align="center" >
+        <td><img src="img/oi.png" width="50" height="50"></td>
+        <td><img src="img/docker.png" width="50" height="50"></td>
+        <td><img src="img/git.png" width="50" height="50"></td>
+        <td><img src="img/nginx.png" width="50" height="50"></td>
+        <td><img src="img/ollama.png" width="50" height="50"></td>
+        <td><img src="img/meta.png" width="50" height="50"></td>
+        <td><img src="img/deepseek.png" width="50" height="50"></td>
+      </tr>
+      <tr style="font-size:small;">
+        <td>Open WebUI</td>
+        <td>Docker</td>
+        <td>Git</td>
+        <td>NGinx</td>
+        <td>Ollama</td>
+        <td>Meta</td>
+        <td>DeepSeek</td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+
 ## 💼 𝗨𝘀𝗲 𝗖𝗮𝘀𝗲
 Este caso de uso se centra en ofrecer soluciones de inteligencia artificial open source de fácil despliegue y uso, permitiendo a empresas y desarrolladores acceder rápidamente a tecnología de vanguardia. Se aborda implementando Open WebUI para gestionar modelos de IA, junto con Ollama para ejecutar modelos de lenguaje (LLM) en entornos CPU o GPU, y Nginx para asegurar el tráfico HTTPS. Todo se orquesta con Docker Compose, lo que permite configurar perfiles específicos y una integración ágil en entornos locales o en la nube.
 
@@ -85,3 +131,14 @@ sudo docker compose --profile cpu up
 ```
 
 Ref: https://github.com/n8n-io/self-hosted-ai-starter-kit
+
+## Step by Step (YouTube)
+
+[![AI CloudTech](img/youtube.png)](https://youtu.be/Uxy4nnS62_4?si=RHNllqde3Khoaaum)
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-url]: https://github.com/jganggini/oci-functions/issues
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://www.linkedin.com/in/jganggini/
